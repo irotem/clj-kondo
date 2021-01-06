@@ -8,6 +8,7 @@
    [clj-kondo.impl.analyzer.core-async :as core-async]
    [clj-kondo.impl.analyzer.datalog :as datalog]
    [clj-kondo.impl.analyzer.jdbc :as jdbc]
+   [clj-kondo.impl.analyzer.security :as security]
    [clj-kondo.impl.analyzer.namespace :as namespace-analyzer
     :refer [analyze-ns-decl]]
    [clj-kondo.impl.analyzer.potemkin :as potemkin]
@@ -1297,6 +1298,7 @@
          :as _m}
         (resolve-name ctx ns-name full-fn-name)
         expr-meta (meta expr)]
+    (security/analyze ctx expr _m)
     (cond (and unresolved?
                (str/ends-with? full-fn-name "."))
           (recur ctx

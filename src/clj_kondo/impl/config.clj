@@ -86,6 +86,8 @@
               :missing-clause-in-try {:level :warning}
               :missing-body-in-when {:level :warning}
               :hook {:level :error}
+              :security-low {:level :warning}
+              :security-high {:level :error}
               :format {:level :error}
               :shadowed-var {:level :off
                              #_#_:suggestions {clojure.core/type tajpu
