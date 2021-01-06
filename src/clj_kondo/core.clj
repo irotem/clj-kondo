@@ -11,6 +11,55 @@
 
 ;;;; Public API
 
+(defn find-first
+  [f coll]
+  (first (keep-indexed (fn [idx x]
+                         (when (f x)) idx
+                         ) coll)
+         ))
+
+(defn generate-sarif [findings output-cfg summary]
+  (let [
+        artifacts (distinct (map :filename findings))
+        ]
+    (cheshire/generate-string
+      {
+       :version "2.1.0"
+       :$schema "http://json.schemastore.org/sarif-2.1.0"
+       :runs    [{
+                  :tool      {
+                              :driver {
+                                       :name           "Kondo"
+                                       :informationUri "https://github.com/clj-kondo/clj-kondo"
+                                       :version "4.1-sec"
+                                       }
+                              }
+                  :artifacts (map (fn [f] {:location {:uri f}}) artifacts)
+                  :results   (map (fn [{:keys [:message :level :row :col :end-row :end-col :filename] :as f}]
+                                    {
+                                     :level     level
+                                     :ruleId    (:rule message)
+                                     :message   {
+                                                 :text (:info message)
+                                                 }
+                                     :locations [{:physicalLocation {
+                                                                     :region           {
+                                                                                        :startLine   row
+                                                                                        :startColumn col
+                                                                                        :endLine     end-row
+                                                                                        :endColumn   end-col
+                                                                                        }
+                                                                     :artifactLocation {
+                                                                                        :index (find-first #(= filename %)
+                                                                                                           artifacts)
+                                                                                        :uri   filename}}}]
+
+                                     }) findings)
+                  }]}
+      {:pretty true}
+      ))
+  )
+
 (defn print!
   "Prints the result from `run!` to `*out*`. Returns `nil`. Alpha,
   subject to change."
